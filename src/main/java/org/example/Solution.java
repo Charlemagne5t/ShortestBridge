@@ -1,62 +1,111 @@
 package org.example;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class Solution {
     public int shortestBridge(int[][] grid) {
-        //TODO
+        if(grid == null) return 0;
         int i = 0;
         int j = 0;
+        outerLoop:
         for (; i < grid.length; i++) {
-            for (; j < grid[i].length; j++) {
-                if(grid[i][j] == 1) break;
+            for (j = 0; j < grid[i].length; j++) {
+                if (grid[i][j] == 1) {
+                    break outerLoop;
+                }
             }
         }
         // i and j is coordinates of the start of the first island. Now we need to find its boundaries.
-        // Let's try BFS and store the island tiles coords presented { i, j} in set.
-
-        return 0;
+        // Let's try BFS and store the island tiles coordinates presented {i, j} in set.
+        Set<List<Integer>> firstIsland = bfsFindingIslandTiles(grid, i, j);
+        //we have first island. Now we need to find the shortest path to any land (1) tile
+        // that doesn't belong to the first island. Let's try it using bfs again.
+        int shortestPath = Integer.MAX_VALUE;
+        for (List<Integer> start : firstIsland) {
+            int shortestPathForCurrentTile = shortestPathBFS(start, grid, firstIsland);
+            if (shortestPathForCurrentTile != -1) {
+                shortestPath = Math.min(shortestPath, shortestPathForCurrentTile);
+            }
+        }
+        return shortestPath;
     }
 
-    private static Set<Integer[]> bfs(int[][] grid, int i, int j){
-        Set<Integer[]> firstIsland = new HashSet<>();
-        Integer[] start = {i, j};
-
-        Queue<Integer[]> queue = new LinkedList<>();
+    private Set<List<Integer>> bfsFindingIslandTiles(int[][] grid, int i, int j) {
+        Set<List<Integer>> islandCoordinates = new HashSet<>();
+        List<Integer> start = new ArrayList<>(List.of(i, j));
+        islandCoordinates.add(start);
+        Queue<List<Integer>> queue = new LinkedList<>();
         queue.offer(start);
 
-        while (!queue.isEmpty()){
-            Integer[] currentCoordinate = queue.poll();
-            if (currentCoordinate[0] != 0 && grid[currentCoordinate[0] - 1][currentCoordinate[1]] == 1 && !firstIsland.contains(new Integer[]{currentCoordinate[0] - 1, currentCoordinate[1]})){
-                Integer[] tileBelongs = new Integer[]{currentCoordinate[0] - 1, currentCoordinate[1]};
-                queue.offer(tileBelongs);
-                firstIsland.add(tileBelongs);
-            }
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        boolean[][] visited = new boolean[grid.length][grid[0].length];
+        visited[i][j] = true;
 
-            if (currentCoordinate[0] != grid.length - 1 && grid[currentCoordinate[0] + 1][currentCoordinate[1]] == 1 && !firstIsland.contains(new Integer[]{currentCoordinate[0] + 1, currentCoordinate[1]})) {
-                Integer[] tileBelongs = new Integer[]{currentCoordinate[0] + 1, currentCoordinate[1]};
-                queue.offer(tileBelongs);
-                firstIsland.add(tileBelongs);
-            }
+        while (!queue.isEmpty()) {
+            List<Integer> currentCoordinate = queue.poll();
+            int x = currentCoordinate.get(0);
+            int y = currentCoordinate.get(1);
 
-            if (currentCoordinate[1] != 0 && grid[currentCoordinate[0]][currentCoordinate[1] - 1] == 1 && !firstIsland.contains(new Integer[]{currentCoordinate[0], currentCoordinate[1] - 1})) {
-                Integer[] tileBelongs = new Integer[]{currentCoordinate[0], currentCoordinate[1] - 1};
-                queue.offer(tileBelongs);
-                firstIsland.add(tileBelongs);
-            }
+            for (int[] direction : directions) {
+                int newX = x + direction[0];
+                int newY = y + direction[1];
 
-            if (currentCoordinate[1] != grid[0].length - 1 && grid[currentCoordinate[0]][currentCoordinate[1] + 1] == 1 && !firstIsland.contains(new Integer[]{currentCoordinate[0], currentCoordinate[1] + 1})) {
-                Integer[] tileBelongs = new Integer[]{currentCoordinate[0], currentCoordinate[1] + 1};
-                queue.offer(tileBelongs);
-                firstIsland.add(tileBelongs);
+                if (newX >= 0 && newX < grid.length && newY >= 0 && newY < grid[0].length && grid[newX][newY] == 1 && !visited[newX][newY]) {
+                    List<Integer> tileBelongs = new ArrayList<>(List.of(newX, newY));
+                    queue.offer(tileBelongs);
+                    islandCoordinates.add(tileBelongs);
+                    visited[newX][newY] = true;
+                }
             }
-            }
-        return firstIsland;
         }
 
+        return islandCoordinates;
+    }
 
+    private int shortestPathBFS(List<Integer> start, int[][] grid, Set<List<Integer>> island) {
+        Queue<List<Integer>> queue = new LinkedList<>();
+        Set<List<Integer>> visited = new HashSet<>();
+        visited.add(start);
+        queue.offer(start);
+        int pathLength = 0;
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+
+            for (int i = 0; i < size; i++) {
+                List<Integer> currentPosition = queue.poll();
+                if (grid[currentPosition.get(0)][currentPosition.get(1)] == 1 && !island.contains(currentPosition))
+                    return pathLength - 1;
+                // NORTH
+                if (currentPosition.get(0) != 0 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))))
+                        && !island.contains(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))))) {
+                    queue.offer(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))));
+                    visited.add(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))));
+                }
+                //SOUTH
+
+                if (currentPosition.get(0) != grid.length - 1 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))))
+                        && !island.contains(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))))) {
+                    queue.offer(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))));
+                    visited.add(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))));
+                }
+                //WEST
+                if (currentPosition.get(1) != 0 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)))
+                        && !island.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)))) {
+                    queue.offer(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)));
+                    visited.add(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)));
+                }
+                //EAST
+                if (currentPosition.get(1) != grid[0].length - 1 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)))
+                        && !island.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)))) {
+                    queue.offer(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)));
+                    visited.add(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)));
+                }
+
+            }
+            pathLength++;
+        }
+        return -1;
     }
 }
+
+
