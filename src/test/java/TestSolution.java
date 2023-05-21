@@ -36,13 +36,5 @@ public class TestSolution {
         };
         Assert.assertEquals(1, new Solution().shortestBridge(grid));
     }
-//    @Test
-//    public void testArray(){
-//        Integer[] array = new Integer[]{0, 1};
-//        Integer[] array2 = new Integer[]{0, 1};
-//        Set<Integer[]> set = new HashSet<>();
-//        set.add(array);
-//        Assert.assertTrue(set.contains(array2));
-//
-//    }
+
 }

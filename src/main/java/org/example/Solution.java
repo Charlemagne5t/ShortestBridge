@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Solution {
     public int shortestBridge(int[][] grid) {
-        if(grid == null) return 0;
+        if (grid == null) return 0;
         int i = 0;
         int j = 0;
         outerLoop:
@@ -64,8 +64,10 @@ public class Solution {
 
     private int shortestPathBFS(List<Integer> start, int[][] grid, Set<List<Integer>> island) {
         Queue<List<Integer>> queue = new LinkedList<>();
-        Set<List<Integer>> visited = new HashSet<>();
-        visited.add(start);
+        boolean[][] visited= new boolean[grid.length][grid[0].length];
+
+        visited[start.get(0)][start.get(1)] = true;
+
         queue.offer(start);
         int pathLength = 0;
         while (!queue.isEmpty()) {
@@ -76,29 +78,29 @@ public class Solution {
                 if (grid[currentPosition.get(0)][currentPosition.get(1)] == 1 && !island.contains(currentPosition))
                     return pathLength - 1;
                 // NORTH
-                if (currentPosition.get(0) != 0 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))))
+                if (currentPosition.get(0) != 0 && !visited[currentPosition.get(0) - 1][currentPosition.get(1)]
                         && !island.contains(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))))) {
                     queue.offer(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))));
-                    visited.add(new ArrayList<>(List.of(currentPosition.get(0) - 1, currentPosition.get(1))));
+                    visited[currentPosition.get(0) - 1][currentPosition.get(1)] = true;
                 }
                 //SOUTH
 
-                if (currentPosition.get(0) != grid.length - 1 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))))
+                if (currentPosition.get(0) != grid.length - 1 && !visited[currentPosition.get(0) + 1][currentPosition.get(1)]
                         && !island.contains(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))))) {
                     queue.offer(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))));
-                    visited.add(new ArrayList<>(List.of(currentPosition.get(0) + 1, currentPosition.get(1))));
+                    visited[currentPosition.get(0) + 1][currentPosition.get(1)] = true;
                 }
                 //WEST
-                if (currentPosition.get(1) != 0 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)))
+                if (currentPosition.get(1) != 0 && !visited[currentPosition.get(0)][ currentPosition.get(1) - 1]
                         && !island.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)))) {
                     queue.offer(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)));
-                    visited.add(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) - 1)));
+                    visited[currentPosition.get(0)][currentPosition.get(1) - 1] = true;
                 }
                 //EAST
-                if (currentPosition.get(1) != grid[0].length - 1 && !visited.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)))
+                if (currentPosition.get(1) != grid[0].length - 1 && !visited[currentPosition.get(0)][currentPosition.get(1) + 1]
                         && !island.contains(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)))) {
                     queue.offer(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)));
-                    visited.add(new ArrayList<>(List.of(currentPosition.get(0), currentPosition.get(1) + 1)));
+                    visited[currentPosition.get(0)][currentPosition.get(1) + 1] = true;
                 }
 
             }
